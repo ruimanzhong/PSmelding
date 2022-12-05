@@ -1,0 +1,124 @@
+---
+title: "PSmelding"
+output: html_document
+date: "2022-12-05"
+---
+Make sure RandomFields and INLA pacakage work
+```{r}
+source('header.R')
+```
+parameters setting
+```{r}
+xlim = c (0,1)
+ylim = c(0,1)
+
+xlim0 = c(0,1)
+ylim0 = c(0,1)
+by = 0.02
+
+mu1 = 4
+mu0 = 0
+nu = 1
+nu0 = nu
+scl= 0.15
+scl0 = 0.13
+sig2 = 2
+sig20 = sig2
+
+sig.err = 1
+
+beta0 = 0.5
+beta1 = 0.1
+```
+
+```{r}
+pnum = c(10, 50, 100)
+anum = c(2,4)
+```
+
+
+```{r}
+r <- latt_generation(xlim, ylim, by, mu1, nu, scl, sig2, seed = 123) 
+rs <- latt_generation(xlim0, ylim0, by, mu0, nu0, scl0, sig20, seed = 123)
+ 
+par(mfrow= c(1,2))
+plot(r)
+plot(rs)
+par(mfrow= c(1,1))
+```
+Something we don't modify
+```{r}
+win = owin(xrange = xlim, yrange = ylim)
+boundaryregion <- sf::st_as_sf(win)
+x <- seq(from = xlim[1] + (by / 2), to = xlim[2] - (by / 2), by = by)
+y <- seq(from = ylim[1] + (by / 2), to = ylim[2] - (by / 2), by = by)
+coord <- expand.grid(x = x, y = y)
+coop_sf <- sf::st_as_sf(coord, coords = c('x','y'))
+dppoint <- coop_sf %>% st_join(boundaryregion, left = FALSE)
+
+truesurface <- raster::extract(r, as.matrix(st_coordinates(dppoint))[, c(1,2)])
+truesurface_sf <- dppoint %>% mutate(true = truesurface)
+
+loc.d <- cbind(c(0, 1, 1, 0, 0), c(0, 0, 1, 1, 0))
+mesh <- inla.mesh.2d(loc.domain = loc.d, offset = c(0.1, 0.35), 
+                     max.edge = c(0.1, 0.25), cutoff = 0.01)
+plot(mesh)
+```
+
+Generating PS samples based on rs and check the pattern. Take pnum = 100; anum = 2; 
+This setting Cox melding outperform more
+```{r, scenario}
+loct <- pcoxsample(pnum[1], rs)
+p3 <- datagenerator(loct, r) 
+a1 <- areasample(anum[1], r) %>% st_make_valid()%>% st_set_crs(NA_crs_)
+depoint <- p3 %>% st_as_sf(coords = c("x", "y"), dim = "XY") %>% st_cast("POINT")
+latent_plot(r,rs,depoint)
+```
+
+Modelling: the output includes dp1, dp2(NULL here), inla output, spde structure
+```{r warning=FALSE}
+ori_pref <- fnPredictMelding(depoint = depoint, dearea = a1, dppoint = dppoint, dparea = NULL,
+                               boundaryregion = boundaryregion, mesh = mesh, prior.sigma = c(2, 0.1), prior.range = c(0.1, 0.8))
+
+
+cox_pref <- fnMeldingCox(depoint = depoint, dearea = a1, dparea = NULL,prior.sigma = c(2, 0.1), dppoint = dppoint,
+                             loc.d = loc.d,
+                             prior.range = c(0.05, 0.01),
+                             boundaryregion = boundaryregion, mesh = mesh)
+```
+
+Evaluation
+```{r}
+res <- makeNamedList(ori_pref, cox_pref)
+
+eva <- fnEvaluation(res,truesurface_sf, pnum, anum)
+names <- names(res)
+mse_list = NULL
+mae_list = NULL
+for( i in 1:length(eva)){ 
+  print(i)
+  mse <- myMSE(eva[i])[[1]]
+  mae <- myMSE(eva[i])[[2]]
+  mse_list <- c(mse_list, mse)
+  mae_list <- c(mae_list, mae)
+}
+names(mse_list) <- names
+names(mae_list) <- names
+
+mse_list
+mae_list
+```
+MAE and MSE of Cox_melding are the same: the absolute values of all prediction errors are identical. 
+
+For anum = 4, pnum =100
+```{r}
+mse_list
+mae_list
+```
+
+For pnum = 10, anum = 2
+Based on what I have try, the quality of the estimation of cox melding depends heavily on the pnum. since I just try anum = 2/4, I cannot say that anum does not contribute too much. In addition, it is also sensitive to sampling pattern. 
+```{r}
+mse_list
+mae_list
+```
