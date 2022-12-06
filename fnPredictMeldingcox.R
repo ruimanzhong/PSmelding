@@ -1,4 +1,4 @@
-fnMeldingCox <- function(depoint, dearea = NULL, dppoint = NULL , dparea = NULL, boundaryregion, loc.d, 
+fnMeldingPS <- function(depoint, dearea = NULL, dppoint = NULL , dparea = NULL, boundaryregion, loc.d, 
                          mesh = NULL, prior.sigma = NULL, prior.range = NULL) {
   # Use 1 for points and 2 for areas
   # datasets estimation

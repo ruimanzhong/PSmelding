@@ -22,7 +22,7 @@ nu = 1
 nu0 = nu
 scl= 0.15
 scl0 = 0.13
-sig2 = 2
+sig2 = 4
 sig20 = sig2
 
 sig.err = 1
@@ -72,27 +72,47 @@ loct <- pcoxsample(pnum[1], rs)
 p3 <- datagenerator(loct, r) 
 a1 <- areasample(anum[1], r) %>% st_make_valid()%>% st_set_crs(NA_crs_)
 depoint <- p3 %>% st_as_sf(coords = c("x", "y"), dim = "XY") %>% st_cast("POINT")
+
+# here we show the true sufrace with the sampled data points 
 latent_plot(r,rs,depoint)
+
 ```
 
 Modelling: the output includes dp1, dp2(NULL here), inla output, spde structure
 ```{r warning=FALSE}
-ori_pref <- fnPredictMelding(depoint = depoint, dearea = a1, dppoint = dppoint, dparea = NULL,
+res_meld <- fnPredictMelding(depoint = depoint, dearea = a1, dppoint = dppoint, dparea = NULL,
                                boundaryregion = boundaryregion, mesh = mesh, prior.sigma = c(2, 0.1), prior.range = c(0.1, 0.8))
 
 
-cox_pref <- fnMeldingCox(depoint = depoint, dearea = a1, dparea = NULL,prior.sigma = c(2, 0.1), dppoint = dppoint,
+res_ps_meld <- fnMeldingPS(depoint = depoint, dearea = a1, dparea = NULL,prior.sigma = c(2, 0.1), dppoint = dppoint,
                              loc.d = loc.d,
-                             prior.range = c(0.05, 0.01),
+                             prior.range = c(0.1, 0.8),
                              boundaryregion = boundaryregion, mesh = mesh)
+
+
+res_point <- fnPredictMelding(depoint = depoint, dearea = NULL, dppoint = dppoint, dparea = NULL,boundaryregion = boundaryregion, mesh = mesh, prior.sigma = c(2, 0.01), prior.range = c(0.1, 0.8))
+res_ps_point <- fnMeldingPS(depoint = depoint, dearea = NULL, dparea = NULL,prior.sigma = c(2, 0.1), dppoint = dppoint,
+                            loc.d = loc.d,
+                            prior.range = c(0.1, 0.8),
+                            boundaryregion = boundaryregion, mesh = mesh)
+```
+
+Prediction field
+
+```{r}
+res <- makeNamedList(res_meld, res_point,res_ps_meld, res_ps_point)
+names <- names(res)
+raster_plot(names[1], dppoint)
+raster_plot('res_ps_meld', dppoint)
+raster_plot(names[2], dppoint)
+raster_plot(names[4], dppoint)
 ```
 
 Evaluation
 ```{r}
-res <- makeNamedList(ori_pref, cox_pref)
 
 eva <- fnEvaluation(res,truesurface_sf, pnum, anum)
-names <- names(res)
+eva[1]
 mse_list = NULL
 mae_list = NULL
 for( i in 1:length(eva)){ 
