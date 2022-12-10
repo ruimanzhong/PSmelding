@@ -1,5 +1,5 @@
 fnPredictMelding <- function(depoint = NULL, dearea = NULL, dppoint = NULL, dparea = NULL, boundaryregion,
-                             mesh = NULL,prior.sigma = NULL,prior.range = NULL){
+                             mesh = NULL, prior.sigma = NULL, prior.range = NULL){
   
   # Use 1 for points and 2 for areas
   # datasets estimation
@@ -70,7 +70,7 @@ fnPredictMelding <- function(depoint = NULL, dearea = NULL, dppoint = NULL, dpar
   if(dp1ToF){dp1 <- fnRetrievePredictions(stk.full, res, "pred1", dp1)}
   # Predictions areas
   if(dp2ToF){dp2 <- fnRetrievePredictions(stk.full, res, "pred2", dp2)}
-  return(list(dp1,dp2,res,spde))
+  return(list(dp1, dp2, res, spde))
 }
 
 #####################################################################
