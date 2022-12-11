@@ -7,15 +7,16 @@ anum <- c(2, 4)
 
 # Parameters to simulate surface
 simus <- list(
-  simu1 = data.frame(mu1 = 4, mu0 = 0, nu = 1, nu0 = 1, scl = 0.1, scl0 = 0.1, sig2 = 8, sig20 = 4, sig.err = 1, beta0 = 0.1, beta1 = 0.1),
-  simu2 = data.frame(mu1 = 4, mu0 = 0, nu = 1, nu0 = 1, scl = 0.5, scl0 = 0.5, sig2 = 8, sig20 = 4, sig.err = 1, beta0 = 0.1, beta1 = 0.1))
+  simu1 = data.frame(mu1 = 4, mu0 = 0, nu = 1, nu0 = 1, scl = 0.1, scl0 = 0.1, sig2 = 4, sig20 = 4, sig.err = 1, beta0 = 1, beta1 = 1),
+  simu2 = data.frame(mu1 = 4, mu0 = 0, nu = 1, nu0 = 1, scl = 0.5, scl0 = 0.5, sig2 = 4, sig20 = 4, sig.err = 1, beta0 = 0.1, beta1 = 0.1))
 
 # Fit models
 
-for(pnumm in pnum){
-for(anumm in anum){
+
 for(paramname in names(simus)){
-      
+for(anumm in anum){
+for(pnumm in pnum){
+    
 print(pnumm)
 print(anumm)
 print(paramname)
@@ -40,8 +41,8 @@ mmae <- NULL
 for(paramname in names(simus)){
 for(anumm in anum){
 for(pnumm in pnum){
-filesave <- paste0("NPoints", pnumm, "NAreas", anumm, "-", paramname)
-
+filesave <- paste0(paramname, "-", "NPoints", pnumm, "NAreas", anumm)
+  
 vecmse <- read.csv(paste0("results/MSE", filesave, ".csv"))[[1]]
 vecmae <- read.csv(paste0("results/MAE", filesave, ".csv"))[[1]]
 

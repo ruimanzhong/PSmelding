@@ -75,7 +75,7 @@ print("Save files with errors")
 # Name to save file with results
 # paramname <- gsub("\\.", "p", paste(param))
 # paramname <- paste(paramname, collapse = "-")
-filesave <- paste0("NPoints", pnumm, "NAreas", anumm, "-", paramname)
+filesave <- paste0(paramname, "-", "NPoints", pnumm, "NAreas", anumm)
 
 # Save files with errors of each fitted model
 write.csv(vecmse, row.names = FALSE, file = paste0("results/MSE", filesave, ".csv"))
