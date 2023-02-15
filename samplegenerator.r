@@ -1,7 +1,4 @@
 latt_generation <- function (xlim, ylim, by, mu, nu, scl, sig2, seed = NULL) {
-  if (!is.null(seed)) {
-    set.seed(seed = seed) 
-  }
   
   x <- seq(from = xlim[1] + (by / 2), to = xlim[2] - (by / 2), by = by)
   y <- seq(from = ylim[1] + (by / 2), to = ylim[2] - (by / 2), by = by)
@@ -43,9 +40,8 @@ pimsample <- function(n,sig.err, ...){
 }
 
 pcoxsample <- function(n = NULL,rs, ...){
- 
   lambda <- rs
-  values(lambda) <- exp(beta0 + values(rs))
+  values(lambda) <- exp( beta1*values(rs))
    
     if (!is.null(n)){
       loct <- rpoint(n = n, f = as.im(lambda), win = owin(xrange = xlim, yrange = ylim))
@@ -70,7 +66,7 @@ pgcsample <- function(n = NULL, rs,...){
                 corr = matern.gc(range = scl0, kappa = nu, nugget = 0))
 }
 
-datagenerator <- function(loct,r, ...){
+datagenerator <- function(loct,r,sig.err, ...){
   Y = NULL
   n_points <- loct$n
   

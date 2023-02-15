@@ -1,6 +1,9 @@
 fnPredictMeldingPS <- function(depoint, dearea = NULL, dppoint = NULL , dparea = NULL, boundaryregion,
                          mesh = NULL, prior.sigma = NULL, prior.range = NULL, loc.d){
   
+
+# replicate ---------------------------------------------------------------
+
   
   # Use 1 for points and 2 for areas
   # datasets estimation
@@ -20,10 +23,6 @@ fnPredictMeldingPS <- function(depoint, dearea = NULL, dppoint = NULL , dparea =
   dp2ToF <- !is.null(dp2)
   
   
-  # Mesh
-  #if(is.null(mesh)){
-  #  mesh <- fnCreateMesh(de1, boundaryregion)
-  #}
   
   # Create spde and index
   if(!is.null(prior.sigma) & !is.null(prior.range)){
@@ -34,9 +33,9 @@ fnPredictMeldingPS <- function(depoint, dearea = NULL, dppoint = NULL , dparea =
   }
   indexs <- inla.spde.make.index("s", spde$n.spde)
   
-  ##########################################################
-  
-  
+#------
+# Dual mesh construction (from inla book)
+#------  
   domain.polys <- Polygons(list(Polygon(loc.d)), "0")
   domainSP <- SpatialPolygons(list(domain.polys))
   dmesh <- book.mesh.dual(mesh)
@@ -54,19 +53,17 @@ fnPredictMeldingPS <- function(depoint, dearea = NULL, dppoint = NULL , dparea =
   nv <- mesh$n
   y.pp <- rep(0:1, c(nv, n))
   e.pp <- c(w, rep(0, n))
-
-
-  
+#--------
+# *********** The unsure part of the code ************
+#-------- 
   # Projection matrices for points (estimation point and prediction point)
+  
   if(de1ToF){Ae1 <- inla.spde.make.A(mesh = mesh, loc = as.matrix(st_coordinates(de1)[ , c(1,2)]))
   imat <- Diagonal(nv, rep(1, nv))
   A.pp <- rbind(imat, Ae1)
   }
   if(dp1ToF){Ap1 <- inla.spde.make.A(mesh = mesh, loc = as.matrix(st_coordinates(dp1)[ , c(1,2)]))}
-  #N <- nrow(dp1)
-  #y.ppp <- rep(0, N)
-  #e.ppp <- rep(0, N)
-  #A.ppp <- Ap1
+
   
   # Create projection matrix A for areas (estimation area and prediction area)
   if(de2ToF){Ae2 <- fnProjectionMatrixArea(de2, mesh)}
@@ -117,7 +114,7 @@ fnPredictMeldingPS <- function(depoint, dearea = NULL, dppoint = NULL , dparea =
   if(dp1ToF){dp1 <- fnRetrievePredictions(stk.full, res, "pred1", dp1)}
   # Predictions areas
   if(dp2ToF){dp2 <- fnRetrievePredictions(stk.full, res, "pred2", dp2)}
-  return(list(dp1, dp2, res, spde))
+  return(list(dp1, dp2, res))
 
 }
 
