@@ -80,15 +80,15 @@ fnPredictMeldingPS <- function(depoint, dearea = NULL, dppoint = NULL , dparea =
   # estimation point (de1), estimation area (de2), prediction point (dp1), prediction area (dp2)
 
   if(de1ToF){stk.e1 <- inla.stack(tag = "est1", data = list(y = cbind(de1$value, NA), e = rep(0, n)),
-                                  A = list(1, Ae1), effects = list(b0 = rep(1, n), i = 1:nv))
+                                  A = list(1, Ae1,1), effects = list(b0 = rep(1, n), i = 1:nv, er = 1:nrow(de1)))
              stk.e1pp <- inla.stack(tag = "est1pp", data = list(y = cbind(NA, y.pp), e = e.pp),
                                    A = list(1, A.pp), effects = list(b0pp = rep(1, nv + n), j = 1:nv))
   }
   if(de2ToF){stk.e2 <- inla.stack(tag = "est2", data = list(data.frame(y = cbind(de2$value, NA), e = rep(NA, nrow(de2)))),
-                                  A = list(1, Ae2), effects = list(data.frame(b0 = rep(1, nrow(de2))), i = indexs$s))}
+                                  A = list(1, Ae2,1), effects = list(data.frame(b0 = rep(1, nrow(de2))), i = indexs$s, er = 1:nrow(de2)))}
   
   if(dp1ToF){stk.p1 <- inla.stack(tag = "pred1", data = list(y = cbind(rep(NA, nrow(dp1)), NA), e = rep(NA, nrow(dp1))),
-                                  A = list(1, Ap1), effects = list(data.frame(b0 = rep(1, nrow(dp1))), i = indexs$s))}
+                                  A = list(1, Ap1,1), effects = list(data.frame(b0 = rep(1, nrow(dp1))), i = indexs$s, er = 1:nrow(dp1)))}
   
   if(dp2ToF){stk.p2 <- inla.stack(tag = "pred2", data = list(y = cbind(rep(NA, nrow(dp2)), NA), e = rep(NA, nrow(dp2))),
                                   A = list(1, Ap2), effects = list(data.frame(b0 = rep(1, nrow(dp2))), i = indexs$s))}
@@ -102,11 +102,12 @@ fnPredictMeldingPS <- function(depoint, dearea = NULL, dppoint = NULL , dparea =
 
   # Specify formula melding
 
-  formula <- y ~ 0 + b0 + b0pp + f(i, model = spde) + f(j, copy = "i", fixed = FALSE)
+  formula <- y ~ 0 + b0 + b0pp + f(i, model = spde) + f(j, copy = "i", fixed = FALSE) + f(er, model = "iid")
 
   # Call inla()
   res <- inla(formula, family = c("gaussian", "poisson"), data = inla.stack.data(stk.full),
     E = inla.stack.data(stk.full)$e,
+    control.compute = list(config = TRUE, return.marginals.predictor = TRUE),
     control.predictor = list(compute = TRUE, link = 1, A = inla.stack.A(stk.full)))
   
   # Retrieve predictions points

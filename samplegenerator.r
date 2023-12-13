@@ -18,7 +18,7 @@ latt_generation <- function (xlim, ylim, by, mu, nu, scl, sig2, seed = NULL) {
   raster(process)
 }
 
-punifsample <- function(n,...){
+punifsample <- function(n,r){
   dp <- rpoint(n)
   #plot(dp)
   # Extract data at points
@@ -27,7 +27,7 @@ punifsample <- function(n,...){
   
   return(depoint)
 }
-pimsample <- function(n,sig.err, ...){
+pimsample <- function(n,sig.err, r){
   im_r <- as.im(r)
   # sample from im_r based on value of im_r
   dp <- rpoint(n,im_r)
@@ -39,9 +39,9 @@ pimsample <- function(n,sig.err, ...){
   return(depoint)
 }
 
-pcoxsample <- function(n = NULL,rs, ...){
+pcoxsample <- function(n = NULL,rs,beta0, beta1){
   lambda <- rs
-  values(lambda) <- exp( beta1*values(rs))
+  values(lambda) <- exp( beta0 + beta1*values(rs))
    
     if (!is.null(n)){
       loct <- rpoint(n = n, f = as.im(lambda), win = owin(xrange = xlim, yrange = ylim))
@@ -66,7 +66,7 @@ pgcsample <- function(n = NULL, rs,...){
                 corr = matern.gc(range = scl0, kappa = nu, nugget = 0))
 }
 
-datagenerator <- function(loct,r,sig.err, ...){
+datagenerator <- function(loct,r,sig.err){
   Y = NULL
   n_points <- loct$n
   
@@ -78,7 +78,7 @@ datagenerator <- function(loct,r,sig.err, ...){
   return(as.data.frame(cbind(value = Y, x= loct$x, y = loct$y)))
 }
 # Generate areas
-areasample <- function(n, r){
+areasample <- function(n, r,sig.err){
   dearea <- aggregate(r, 50/n)
   #plot(dearea)
   # convert raster 2 to sp to be able to use extract()
@@ -88,9 +88,10 @@ areasample <- function(n, r){
   re <- raster::extract(r, dearea, weights = TRUE, normalizeWeights = TRUE)
   # this returns values and weights.
   # I cannot use extract() with fun = mean when weights = TRUE so I do it with values*weights
-  dearea$value <- sapply(re, function(m){sum(m[, 1]*m[, 2], na.rm = TRUE)})
-  
+  tvalue <- sapply(re, function(m){sum(m[, 1]*m[, 2], na.rm = TRUE)})
+  dearea$value <- tvalue + rnorm(length(tvalue),0,sd = sqrt(sig.err))
   dearea = st_as_sf(dearea)[,c(2,3)]
   
   return(dearea)
 }
+

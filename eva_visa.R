@@ -13,11 +13,11 @@ rsplot <-as.data.frame(rs, xy = T)
 loct <- as.data.frame(st_coordinates(depoint))
 
 p1 <- ggplot() +
-  geom_raster(data = rplot, aes(x = x, y = y, fill = z)) + colsc(rplot$z) +
+  geom_raster(data = rplot, aes(x = x, y = y, fill = z)) + colsc(rplot$z) +  coord_equal() +
   geom_point(data = loct, aes(x = loct[, 1], y = loct[,2]), col = 1) + ggtitle('Obs on Target field')
 
 p2 <- ggplot() +
-  geom_raster(data = rsplot, aes(x = x, y = y, fill = z)) + colsc(rsplot$z) +
+  geom_raster(data = rsplot, aes(x = x, y = y, fill = z)) + colsc(rsplot$z) + coord_equal() +
   geom_point(data = loct, aes(x = loct[, 1], y = loct[,2]), col = 1) + ggtitle('Obs on Generating field')
  
 p3 <- ggplot(data = boundaryregion) + geom_sf() + ggtitle('Point data') +
@@ -26,7 +26,7 @@ p3 <- ggplot(data = boundaryregion) + geom_sf() + ggtitle('Point data') +
 
 p4 <- NULL
 if(!is.null(dearea)){
-p4 <- ggplot() + geom_sf(data = dearea, aes(fill = value)) + ggtitle('Areal data') +
+p4 <- ggplot() + geom_sf(data = dearea, aes(fill = value)) + ggtitle('Areal data')+ coord_equal() +
     scale_fill_gradientn(colours = rev(RColorBrewer::brewer.pal(11, "RdYlBu")), limits = range(rplot$z, na.rm = TRUE))
 }
 
