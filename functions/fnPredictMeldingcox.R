@@ -115,7 +115,7 @@ fnPredictMeldingPS <- function(depoint, dearea = NULL, dppoint = NULL , dparea =
   if(dp1ToF){dp1 <- fnRetrievePredictions(stk.full, res, "pred1", dp1)}
   # Predictions areas
   if(dp2ToF){dp2 <- fnRetrievePredictions(stk.full, res, "pred2", dp2)}
-  return(list(dp1, dp2, res))
+  return(list(dp1, res))
 
 }
 

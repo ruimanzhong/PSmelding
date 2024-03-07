@@ -95,27 +95,6 @@ fnPlotLatentAndPrediction <- function(r, rs, depoint, dearea, res, name, dppoint
 }
 
 ###############################
-  
-# 
-# fnEvaluation <- function(res, truesurface_sf, pnum, anum, ...) {
-# # if(!"Cluster" %in% names(truesurface_sf)) {truesurface_sf$Cluster <- rep(1, nrow(truesurface_sf)) }
-# len <- length(res)-1
-# names <- names(res)[1:len]
-# 
-# e <- lapply(names, function(name) res[[name]][[1]][["pred_mean"]] - truesurface_sf$true)
-# names(e) <- names
-# ME <- lapply(names, function(name) return(list (MSE = mean(e[[name]]^2), MAE = mean(abs(e[[name]]), time  = res[['time']][[name]]))))
-# names(ME) <- names
-# ME <- unlist(ME)
-# return(ME)
-#   
-# }
-# 
-# makeNamedList <- function(...) {
-#   structure(list(...), names = as.list(substitute(list(...)))[-1L])
-# }
-
- 
 fnPosLatentplot<- function(res, spde){
   par(mfrow = c(3,1))
   plot(res$marginals.fix[[1]], type = "l", main="Posterior density for Beta0.")
@@ -125,16 +104,7 @@ fnPosLatentplot<- function(res, spde){
   plot(inla.tmarginal(sqrt, result.field$marginals.variance.nominal[[1]]),
        type="l", main="Posterior density for std.dev.")
 }
-# 
-# myerrorD <- function(P,Py, y, name){
-#   wd = wasserstein1d(P, y, p = 1, wa = NULL, wb = NULL)
-#   crps_py = scoringutils::crps_sample(y, t(P))
-#   crps_pp = scoringutils::crps_sample(Py, t(P))
-#   scrps <- -0.5*(1+ crps_py/crps_pp + log(2* abs(crps_pp)))
-#   metric <- list(scrps, wd)
-#   names(metric) <- c(paste(name, 'scrps'), paste(name, 'WD'))
-#   return(metric)
-# }
+
 fnmodelconstructplot <- function(depoint,dearea = NULL,r, res, name, dppoint){
   rplot <- as.data.frame(r, xy = T)
   rsplot <-as.data.frame(rs, xy = T) 

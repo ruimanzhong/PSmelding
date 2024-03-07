@@ -29,31 +29,11 @@ fnEvaluation_test <- function(res, truesurface_sf, pnum, anum, sig.err) {
 fnestimate <-function(res){
   len <- length(res)-1
   names <- names(res)[1:len]
-  e <- lapply(names, function(name) rbind(res[[name]][[3]][["summary.fixed"]][,c(1,2,3,5,6)], res[[name]][[3]][["summary.hyperpar"]][,c(1,2,3,5,6)]))
+  e <- lapply(names, function(name) rbind(res[[name]][[2]][["summary.fixed"]][,c(1,2,3,5,6)], res[[name]][[2]][["summary.hyperpar"]][,c(1,2,3,5,6)]))
   names(e) <- names
   return(e)
 }
 
-# fn_microegodic_para <- function(res){
-#   len <- length(res)-1
-#   names <- names(res)[1:len]
-#   e <- lapply(names, function(name) fn_hyper_combine(res[[name]][[3]]) )
-#   
-#   names(e) <- names
-#   return(e)
-# }
-# 
-# fn_hyper_combine <- function(inla_res){
-#   tau <- NULL
-#   
-#   n <- length(inla_res[['misc']][['configs']][['config']])
-#   for (i in 1:n)
-#   {
-#    hyper <-  as.data.frame(res[[name]][[3]][['misc']][['configs']][['config']][[i]][['theta']])
-#    
-#   }
-#   return(margin_para)
-# }
 # Other -------------------------------------------------------------------
 
 makeNamedList <- function(...) {

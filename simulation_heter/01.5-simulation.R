@@ -2,6 +2,7 @@
 nu = 1
 mu1 <- param$mu1
 scl <- param$scl
+sig2 <- param$sig2
 sig.err <- param$sig.err
 beta1 <- param$beta1
 beta0 <- param$beta0

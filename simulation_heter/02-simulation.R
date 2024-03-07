@@ -28,7 +28,7 @@ if(wantplot == TRUE){
 print("Calculate errors")
 # Calculate errors
 # truesurface at prediction locations
-truesurface <- raster::extract(ra, as.matrix(st_coordinates(dppoint))[, c(1,2)])
+truesurface <- raster::extract(rp, as.matrix(st_coordinates(dppoint))[, c(1,2)])
 truesurface_sf <- dppoint %>% mutate(true = truesurface)
 
 # MSE and MAE
@@ -42,17 +42,17 @@ print("Save files with errors")
 # paramname <- gsub("\\.", "p", paste(param))
 # paramname <- paste(paramname, collapse = "-")
 filesave <- paste0(paramname, "-", "NPoints", pnumm, "NAreas", anumm)
-testcon <- file.exists(paste0("results/ME", filesave, ".csv"))
+testcon <- file.exists(paste0("results_heter/ME", filesave, ".csv"))
 
 # Save files with errors of each fitted model
-if(!testcon){write.table(ME, row.names = F, file = paste0("results/ME", filesave, ".csv"))} else{write.table(ME, row.names = F, file = paste0("results/ME", filesave, ".csv"), append = T, col.names = F)}
-if(!testcon){write.table(Time, row.names = F, file = paste0("results/Time", filesave, ".csv"))} else{write.table(Time, row.names = F, file = paste0("results/Time", filesave, ".csv"), append = T, col.names = F)}
-# if(!testcon){write.table(estimate[["Geostat"]], row.names = T, file = paste0("results/Est_geo", filesave, ".csv"))} else{write.table(estimate[["Geostat"]], row.names = T, file = paste0("results/Est_geo", filesave, ".csv"), append = T, col.names = F)}
-if(!testcon){write.table(estimate[["PS_geo"]], row.names = T, file = paste0("results/Est_psgeo", filesave, ".csv"))} else{write.table(estimate[["PS_geo"]], row.names = T, file = paste0("results/Est_psgeo", filesave, ".csv"), append = T, col.names = F)}
-if(!testcon){write.table(estimate[["Melding"]], row.names = T, file = paste0("results/Est_melding", filesave, ".csv"))} else{write.table(estimate[["Melding"]], row.names = T, file = paste0("results/Est_melding", filesave, ".csv"), append = T, col.names = F)}
-if(!testcon){write.table(estimate[["PS_melding"]], row.names = T, file = paste0("results/Est_psmelding", filesave, ".csv"))} else{write.table(estimate[["PS_melding"]], row.names = T, file = paste0("results/Est_psmelding", filesave, ".csv"), append = T, col.names = F)}
+if(!testcon){write.table(ME, row.names = F, file = paste0("results_heter/ME", filesave, ".csv"))} else{write.table(ME, row.names = F, file = paste0("results_heter/ME", filesave, ".csv"), append = T, col.names = F)}
+if(!testcon){write.table(Time, row.names = F, file = paste0("results_heter/Time", filesave, ".csv"))} else{write.table(Time, row.names = F, file = paste0("results_heter/Time", filesave, ".csv"), append = T, col.names = F)}
+# if(!testcon){write.table(estimate[["Geostat"]], row.names = T, file = paste0("results_heter/Est_geo", filesave, ".csv"))} else{write.table(estimate[["Geostat"]], row.names = T, file = paste0("results_heter/Est_geo", filesave, ".csv"), append = T, col.names = F)}
+if(!testcon){write.table(estimate[["PS_geo"]], row.names = T, file = paste0("results_heter/Est_psgeo", filesave, ".csv"))} else{write.table(estimate[["PS_geo"]], row.names = T, file = paste0("results_heter/Est_psgeo", filesave, ".csv"), append = T, col.names = F)}
+if(!testcon){write.table(estimate[["Melding"]], row.names = T, file = paste0("results_heter/Est_melding", filesave, ".csv"))} else{write.table(estimate[["Melding"]], row.names = T, file = paste0("results_heter/Est_melding", filesave, ".csv"), append = T, col.names = F)}
+if(!testcon){write.table(estimate[["PS_melding"]], row.names = T, file = paste0("results_heter/Est_psmelding", filesave, ".csv"))} else{write.table(estimate[["PS_melding"]], row.names = T, file = paste0("results_heter/Est_psmelding", filesave, ".csv"), append = T, col.names = F)}
 
-# write.csv(vecmae, row.names = FALSE, file = paste0("results/MAE", filesave, ".csv"))
+# write.csv(vecmae, row.names = FALSE, file = paste0("results_heter/MAE", filesave, ".csv"))
 
 
 print("Finished")
