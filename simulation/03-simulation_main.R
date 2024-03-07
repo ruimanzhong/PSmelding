@@ -1,5 +1,5 @@
 # Make sure RandomFields and INLA package work
-source('header.R')
+source('simulation/header.R')
 
 # Number of points and number of areas
 pnum <- c(100, 250)
@@ -40,24 +40,6 @@ plan(cluster, workers = cl)
 future_lapply(1:20, FUN = fnSimulate, simus = simus, future.seed = T)
 
 fnSimulate <- function(index, simus, ...){
-  source('header.R')
-  source('01-simulation.R')
-  for(paramname in names(simus)){
-    param <- simus[[paramname]][[1]]
-    prior.range <- simus[[paramname]][["prior.range"]]
-    prior.sigma <- simus[[paramname]][["prior.sigma"]]
-    source("01.5-simulation.R", local= T)
-    for(anumm in anum){
-      for(pnumm in pnum){
-        # Choose parameters
-        # "Generate surface", "Take measurements at points and areas", "Fit models", "Calculate errors"
-        wantplot <- F
-        source("02-simulation.R", local= T)
-      }}
-  }
-}
-
-fnSimulate_estimate <- function(index, simus, ...){
   source('header.R')
   source('01-simulation.R')
   for(paramname in names(simus)){

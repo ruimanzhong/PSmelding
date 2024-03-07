@@ -14,6 +14,7 @@ prior.sigma <- prior.sigma
 prior.range <- prior.range
 print(is.null(index))
 # Generate surface
+
 print("Generate surface")
 lr <- fnGenerateSurface(xlim, ylim, by, mu1, mu0, nu, nu0, scl, scl0, sig2, sig20)
 r <- lr[1][[1]]

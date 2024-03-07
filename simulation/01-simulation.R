@@ -26,14 +26,41 @@ coop_sf <- sf::st_as_sf(coord, coords = c('x','y'))
 dppoint <- coop_sf %>% st_join(boundaryregion, left = FALSE)
 
 
+###################################################
+# Study region, mesh and prediction points
+###################################################
+
+# Study region
+xlim <- c(0,1)
+ylim <- c(0,1)
+by <- 0.02
+by = 0.02
+# Objects to fit the model
+
+# Boundary region
+win <- owin(xrange = xlim, yrange = ylim)
+boundaryregion <- sf::st_as_sf(win)
+
+# Mesh
+loc.d <- cbind(c(0, 1, 1, 0, 0), c(0, 0, 1, 1, 0))
+mesh <- inla.mesh.2d(loc.domain = loc.d, offset = c(0.1, 0.35), max.edge = c(0.05, 0.25), cutoff = 0.01)
+#plot(mesh)
+
+# dppoint (prediction points)
+x <- seq(from = xlim[1] + (by / 2), to = xlim[2] - (by / 2), by = by)
+y <- seq(from = ylim[1] + (by / 2), to = ylim[2] - (by / 2), by = by)
+coord <- expand.grid(x = x, y = y)
+coop_sf <- sf::st_as_sf(coord, coords = c('x','y'))
+dppoint <- coop_sf %>% st_join(boundaryregion, left = FALSE)
+
 
 ###################################################
 # Main functions
 ###################################################
 
-fnGenerateSurface <- function(xlim, ylim, by, mu1, mu0, nu, nu0, scl, scl0, sig2, sig20){
+fnGenerateSurface <- function(xlim, ylim, by, mu1, mu0, nu, nu0, scl, scl0, sig2, sig20, phi){
   # Generate surface
-  r <- latt_generation(xlim, ylim, by, mu1, nu, scl, sig2)
+  r <- latt_generation(xlim, ylim, by, mu1, nu, scl, sig2, phi)
   # Generate surface to sample points
   rs <- latt_generation(xlim, ylim, by, mu0, nu0, scl0, sig20)
   return(list(r, rs))

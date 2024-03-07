@@ -12,14 +12,19 @@ fnEvaluation <- function(res, truesurface_sf, pnum, anum,index, sig.err) {
   return(MEE)
 }
 
-# fnELPD <- function(res,paramname){
-#   elpd <- try(mean(inla.group.cv(res)[["cv"]], na.rm = T), silent = T)
-#   if(class(elpd) == "try-error"){
-#     save(res,turesirface_sf, file = paste0("error/",res[[name]],paramname,pnum,anum,".RData"))
-#     elpd <- NA}
-#   return(elpd)
-#   
-# }
+fnEvaluation_test <- function(res, truesurface_sf, pnum, anum, sig.err) {
+  # if(!"Cluster" %in% names(truesurface_sf)) {truesurface_sf$Cluster <- rep(1, nrow(truesurface_sf)) }
+  len <- length(res)-1
+  names <- names(res)[1:len]
+  n <- nrow(truesurface_sf)
+  ME <- lapply(names, function(name) return(as.data.frame (cbind( Model = name, MSE = mean((res[[name]][[1]][["pred_mean"]] - truesurface_sf$true)^2), MAE = mean(abs(res[[name]][[1]][["pred_med"]] - truesurface_sf$true)),
+                                                                 elpd = 0, 
+                                                                 WD = mean(((res[[name]][[1]][["pred_mean"]] - truesurface_sf$true)^2) + res[[name]][[1]][["sd"]]^2 + sig.err - 2* (sig.err* (res[[name]][[1]][["sd"]]^2)))))))
+  
+  
+  MEE <- as.data.frame(rbind(ME[[1]],ME[[2]],ME[[3]]))
+  return(MEE)
+}
 
 fnestimate <-function(res){
   len <- length(res)-1
