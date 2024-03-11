@@ -26,7 +26,7 @@ for(paramname in Name){
     for(pnumm in pnum){
       param <- simus[[paramname]][[1]]
       filesave <- paste0(paramname, "-", "NPoints", pnumm , "NAreas", anumm)
-      result <- read.csv(file = paste0("~/Documents/Project2/Preferential Sampling 2/PSmelding/results/ME", filesave, ".csv"),header = T, sep="")
+      result <- read.csv(file = paste0("~/Documents/project 2/PSmeld/results_heter/ME", filesave, ".csv"),header = T, sep="")
       result$range <- param$scl
       data <- as.data.frame(cbind(Areas = anumm^2, Points = pnumm, Scenario =paramname, prior = 0, beta1 = param$beta1), stringsAsFactors = T)
       m <- cbind(data,result)
@@ -34,7 +34,7 @@ for(paramname in Name){
     }
   }
 }
-Name <- names(simus)[1:6]
+Name <- names(simus)[7:12]
 for(paramname in Name){
   for (anumm in anum) {
     for(pnumm in pnum){
@@ -50,24 +50,23 @@ for(paramname in Name){
 }
 
 
-data1 = results%>% dplyr::filter(prior == 0 & Model %in% c('Melding', 'PS_geo', 'PS_melding')& Points == 100 & beta1 == 1) 
-data2 = results%>% dplyr::filter(prior == 0 & Model %in% c('Melding', 'PS_geo', 'PS_melding')& Points == 100 & beta1 == 0) 
+data1 = results%>% dplyr::filter(prior == 0 & Model %in% c('Melding', 'PS_geo', 'PS_melding')& Points == 100 & beta1 == 1 & range == 0.1) 
+data2 = results%>% dplyr::filter(prior == 0 & Model %in% c('Melding', 'PS_geo', 'PS_melding')& Points == 100 & beta1 == 0 & range == 0.1) 
 
 table1 <- data1 %>% group_by(Model,Areas, range) %>%
   summarise(
-    MSE =paste0(round(mean(MSE),digits=2),' ','(',round((unname(quantile(MSE, c(0.05)))),digits=2),' ',round((unname(quantile(MSE, c(0.975)))),digits=2),')'),
-    MAE =paste0(round(mean(MAE),digits=2),' ','(',round((unname(quantile(MAE, c(0.05)))),digits=2),' ',round((unname(quantile(MAE, c(0.975)))),digits=2),')'),
-    WD =paste0(round(mean(WD),digits=2),' ','(',round((unname(quantile(WD, c(0.05)))),digits=2),' ',round((unname(quantile(WD, c(0.975)))),digits=2),')')
+    MSE =paste0(round(mean(MSE),digits=2),' ','(',round((unname(quantile(MSE, c(0.05)))),digits=2),';',round((unname(quantile(MSE, c(0.975)))),digits=2),')'),
+    MAE =paste0(round(mean(MAE),digits=2),' ','(',round((unname(quantile(MAE, c(0.05)))),digits=2),';',round((unname(quantile(MAE, c(0.975)))),digits=2),')'),
+    WD =paste0(round(mean(WD),digits=2),' ','(',round((unname(quantile(WD, c(0.05)))),digits=2),';',round((unname(quantile(WD, c(0.975)))),digits=2),')')
   )      
 table1
 table2 <- data2 %>% group_by(Model,Areas, range) %>%
   summarise(
-    MSE =paste0(round(mean(MSE),digits=2),' ','(',round((unname(quantile(MSE, c(0.05)))),digits=2),' ',round((unname(quantile(MSE, c(0.975)))),digits=2),')'),
-    MAE =paste0(round(mean(MAE),digits=2),' ','(',round((unname(quantile(MAE, c(0.05)))),digits=2),' ',round((unname(quantile(MAE, c(0.975)))),digits=2),')'),
-    WD =paste0(round(mean(WD),digits=2),' ','(',round((unname(quantile(WD, c(0.05)))),digits=2),' ',round((unname(quantile(WD, c(0.975)))),digits=2),')')
+    MSE =paste0(round(mean(MSE),digits=2),' ','(',round((unname(quantile(MSE, c(0.05)))),digits=2),';',round((unname(quantile(MSE, c(0.975)))),digits=2),')'),
+    MAE =paste0(round(mean(MAE),digits=2),' ','(',round((unname(quantile(MAE, c(0.05)))),digits=2),';',round((unname(quantile(MAE, c(0.975)))),digits=2),')'),
+    WD =paste0(round(mean(WD),digits=2),' ','(',round((unname(quantile(WD, c(0.05)))),digits=2),';',round((unname(quantile(WD, c(0.975)))),digits=2),')')
   )      
 table2
-fnPredictMeldingPS()
 table <- left_join(table1, table2, by = c("Model" , "Areas", "range"), suffix = c(" PS ", " Non PS") )
 
 table%>%
@@ -79,7 +78,7 @@ table%>%
 s <- c(0.05,0.1, 0.2)
 kappa <- sqrt(2) / s
 theta <- 2/s^2
-data = results%>% dplyr::filter(prior == 0 & Model %in% c('Melding', 'PS_geo', 'PS_melding')& Areas == 4 & beta1 == 1) %>% mutate(theta = 2/range^2)
+data = results%>% dplyr::filter(prior == 0 & Model %in% c('Melding', 'PS_melding','PS_geo',)& Areas == 4 & beta1 == 1) %>% mutate(theta = 2/range^2)
 fnMplot2(data, 4, pc = T)
 fnMplot2(data, 25, pc = F)
 

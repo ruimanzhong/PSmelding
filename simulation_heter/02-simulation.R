@@ -1,4 +1,6 @@
-
+library(RhpcBLASctl)
+blas_get_num_procs()
+blas_set_num_threads(2)
 # Take measurements at points and areas
 lpa <- fnMeasurementsatPointsAndAreas_heter(pnumm, anumm, ra, rp, seed, beta1 = beta1, beta0 = beta0 , sig.err = sig.err)
 depoint <- lpa[1][[1]]
@@ -47,7 +49,6 @@ testcon <- file.exists(paste0("results_heter/ME", filesave, ".csv"))
 # Save files with errors of each fitted model
 if(!testcon){write.table(ME, row.names = F, file = paste0("results_heter/ME", filesave, ".csv"))} else{write.table(ME, row.names = F, file = paste0("results_heter/ME", filesave, ".csv"), append = T, col.names = F)}
 if(!testcon){write.table(Time, row.names = F, file = paste0("results_heter/Time", filesave, ".csv"))} else{write.table(Time, row.names = F, file = paste0("results_heter/Time", filesave, ".csv"), append = T, col.names = F)}
-# if(!testcon){write.table(estimate[["Geostat"]], row.names = T, file = paste0("results_heter/Est_geo", filesave, ".csv"))} else{write.table(estimate[["Geostat"]], row.names = T, file = paste0("results_heter/Est_geo", filesave, ".csv"), append = T, col.names = F)}
 if(!testcon){write.table(estimate[["PS_geo"]], row.names = T, file = paste0("results_heter/Est_psgeo", filesave, ".csv"))} else{write.table(estimate[["PS_geo"]], row.names = T, file = paste0("results_heter/Est_psgeo", filesave, ".csv"), append = T, col.names = F)}
 if(!testcon){write.table(estimate[["Melding"]], row.names = T, file = paste0("results_heter/Est_melding", filesave, ".csv"))} else{write.table(estimate[["Melding"]], row.names = T, file = paste0("results_heter/Est_melding", filesave, ".csv"), append = T, col.names = F)}
 if(!testcon){write.table(estimate[["PS_melding"]], row.names = T, file = paste0("results_heter/Est_psmelding", filesave, ".csv"))} else{write.table(estimate[["PS_melding"]], row.names = T, file = paste0("results_heter/Est_psmelding", filesave, ".csv"), append = T, col.names = F)}

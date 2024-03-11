@@ -165,8 +165,8 @@ book.mesh.dual <- function(mesh) {
 
 
 
-fnPSMeldingCOVTwo <- function(depoint, dearea = NULL, dppoint = NULL , dparea = NULL, boundaryregion,
-                                  mesh = NULL, prior.sigma = NULL, prior.range = NULL, loc.d = NULL, covariate = NULL, PS = T, q = NULL){
+fnPSMeldingCOVTwo <- function(depoint, dearea = NULL, dppoint = NULL, dparea = NULL, boundaryregion,
+                              mesh = NULL, prior.sigma = NULL, prior.range = NULL, loc.d = NULL, covariate = NULL, PS = T, q = NULL) {
   # Use 1 for points and 2 for areas
   # datasets estimation
   de1 <- depoint
@@ -186,10 +186,10 @@ fnPSMeldingCOVTwo <- function(depoint, dearea = NULL, dppoint = NULL , dparea = 
 
 
   # Create spde and index
-  if(!is.null(prior.sigma) & !is.null(prior.range)){
-    fnCheckPrior(prior.sigma,prior.range)
-    spde <- inla.spde2.pcmatern(mesh = mesh, prior.range =prior.range, prior.sigma =prior.sigma)
-  }else{
+  if (!is.null(prior.sigma) & !is.null(prior.range)) {
+    fnCheckPrior(prior.sigma, prior.range)
+    spde <- inla.spde2.pcmatern(mesh = mesh, prior.range = prior.range, prior.sigma = prior.sigma)
+  } else {
     spde <- inla.spde2.matern(mesh = mesh, alpha = 2, constr = T)
   }
   indexs <- inla.spde.make.index("s", spde$n.spde)
@@ -213,74 +213,120 @@ fnPSMeldingCOVTwo <- function(depoint, dearea = NULL, dppoint = NULL , dparea = 
   nv <- mesh$n
   y.pp <- rep(0:1, c(nv, n))
   e.pp <- c(w, rep(0, n))
-  if(de1ToF){Ae1 <- inla.spde.make.A(mesh = mesh, loc = as.matrix(st_coordinates(de1)[ , c(1,2)]))
-  imat <- Diagonal(nv, rep(1, nv))
-  A.pp.c <- rbind(imat, Ae1)
+
+  if (de1ToF) {
+    Ae1 <- inla.spde.make.A(mesh = mesh, loc = as.matrix(st_coordinates(de1)[, c(1, 2)]))
+    imat <- Diagonal(nv, rep(1, nv))
+    A.pp.c <- rbind(imat, Ae1)
   }
-  if(dp1ToF){Ap1 <- inla.spde.make.A(mesh = mesh, loc = as.matrix(st_coordinates(dp1)[ , c(1,2)]))}
-  if(de2ToF){Ae2 <- fnProjectionMatrixArea(de2, mesh)}
+
+  if (dp1ToF) {
+    Ap1 <- inla.spde.make.A(mesh = mesh, loc = as.matrix(st_coordinates(dp1)[, c(1, 2)]))
+  }
+  if (de2ToF) {
+    Ae2 <- fnProjectionMatrixArea(de2, mesh)
+  }
 
   # Create stk.full,
-  #stk.e1 and stk.epp for geostatistical data and point process, stk.e2 for areal data
+  # stk.e1 and stk.epp for geostatistical data and point process, stk.e2 for areal data
   stk.e1 <- NULL
   stk.e1pp <- NULL
   stk.e2 <- NULL
   stk.p1 <- NULL
   stk.p2 <- NULL
-  if(!is.null(covariate)){
-    if(de1ToF){
-      stk.e1 <- inla.stack(tag = "est1", data = list(y = cbind(de1$value, NA), e = rep(0, n)),
-                           A = list(1,1,Ae1), effects = list(b0 = rep(1, nrow(de1)), covariate = de1$population_density, list(i = 1:nv)))
-      stk.e1pp.c <- inla.stack(tag = "est1pp", data = list(y = cbind(NA, y.pp), e = e.pp),
-                               A = list(1, A.pp.c), effects = list(list(b0pp = 1, covariate_pp = covariate$population_density), list(j = 1:nv)))
+
+  if (!is.null(covariate)) {
+    if (de1ToF) {
+      stk.e1 <- inla.stack(
+        tag = "est1", data = list(y = cbind(de1$value, NA), e = rep(0, n)),
+        A = list(1, 1, Ae1), effects = list(b0 = rep(1, nrow(de1)), covariate = de1$population_density, list(i = 1:nv))
+      )
+      stk.e1pp.c <- inla.stack(
+        tag = "est1pp", data = list(y = cbind(NA, y.pp), e = e.pp),
+        A = list(1, A.pp.c), effects = list(list(b0pp = 1, covariate_pp = covariate$population_density), list(j = 1:nv))
+      )
     }
-    if(de2ToF){stk.e2 <- inla.stack(tag = "est2", data = list(data.frame(y = cbind(de2$value, NA), e = rep(NA, nrow(de2)))),
-                                    A = list(1,1, Ae2), effects = list(b0 = rep(1, nrow(de2)), covariate = de2$population_density,list(k = 1:nv,s1 = 1:nv)))}
-    
-    if(dp1ToF){stk.p1 <- inla.stack(tag = "pred1", data = list(y = cbind(rep(NA, nrow(dp1)), NA), e = rep(NA, nrow(dp1))),
-                                    A = list(1,1, Ap1), effects = list(b0 = rep(1, nrow(dp1)), covariate = dp1$population_density, i = 1:nv))}
-    if(PS == T){
-      if(de2ToF){formula <- y ~ 0 + b0 + b0pp  + covariate_pp + covariate + f(i, model = spde) + f(j, copy = "i", fixed = FALSE) + 
-        f(k, copy = "i", fixed = T)
+    if (de2ToF) {
+      stk.e2 <- inla.stack(
+        tag = "est2", data = list(data.frame(y = cbind(de2$value, NA), e = rep(NA, nrow(de2)))),
+        A = list(1, 1, Ae2), effects = list(b0 = rep(1, nrow(de2)), covariate = de2$population_density, list(k = 1:nv))
+      )
+    }
+
+    if (dp1ToF) {
+      stk.p1 <- inla.stack(
+        tag = "pred1", data = list(y = cbind(rep(NA, nrow(dp1)), NA), e = rep(NA, nrow(dp1))),
+        A = list(1, 1, Ap1), effects = list(b0 = rep(1, nrow(dp1)), covariate = dp1$population_density, i = 1:nv)
+      )
+    }
+    if (PS == T) {
+      if (de2ToF) {
+        formula <- y ~ 0 + b0 + b0pp + covariate_pp + covariate + f(i, model = spde) + f(j, copy = "i", fixed = FALSE) +
+          f(k, copy = "i", fixed = F)
       }
-      if(!de2ToF){formula <- y ~ 0 + b0 + b0pp + covariate_pp + covariate + f(i, model = spde) + f(j, copy = "i", fixed = FALSE) }
+      if (!de2ToF) {
+        formula <- y ~ 0 + b0 + b0pp + covariate_pp + covariate + f(i, model = spde) + f(j, copy = "i", fixed = FALSE)
+      }
     } else {
       formula <- y ~ 0 + b0 + covariate + f(i, model = spde) + f(k, copy = "i", fixed = FALSE)
     }
   }
-  
-  if(is.null(covariate)){
-    if(de1ToF){
-      stk.e1 <- inla.stack(tag = "est1", data = list(y = cbind(de1$value, NA), e = rep(0, n)),
-                           A = list(1,Ae1), effects = list(b0 = rep(1, nrow(de1)), list(i = 1:nv)))
-      stk.e1pp.c <- inla.stack(tag = "est1pp", data = list(y = cbind(NA, y.pp), e = e.pp),
-                               A = list(1, A.pp.c), effects = list(b0pp = rep(1, nv + n), j = 1:nv))
+
+  if (is.null(covariate)) {
+    if (de1ToF) {
+      stk.e1 <- inla.stack(
+        tag = "est1", data = list(y = cbind(de1$value, NA), e = rep(0, n)),
+        A = list(1, Ae1), effects = list(b0 = rep(1, nrow(de1)), list(i = 1:nv))
+      )
+      stk.e1pp.c <- inla.stack(
+        tag = "est1pp", data = list(y = cbind(NA, y.pp), e = e.pp),
+        A = list(1, A.pp.c), effects = list(b0pp = rep(1, nv + n), j = 1:nv)
+      )
     }
-    if(de2ToF){stk.e2 <- inla.stack(tag = "est2", data = list(data.frame(y = cbind(de2$value, NA), e = rep(NA, nrow(de2)))),
-                                    A = list(1, Ae2), effects = list(b0 = rep(1, nrow(de2)), list(k = 1:nv,s1 = 1:nv)))}
-    if(dp1ToF){stk.p1 <- inla.stack(tag = "pred1", data = list(y = cbind(rep(NA, nrow(dp1)), NA), e = rep(NA, nrow(dp1))),
-                                    A = list(1, Ap1), effects = list(b0 = rep(1, nrow(dp1)), i = 1:nv))}
-    if(PS == T){
-      if(de2ToF){formula <- y ~ 0 + b0 + b0pp  + f(i, model = spde) + f(j, copy = "i", fixed = FALSE) + 
-        f(k, copy = "i", fixed = T)
+    if (de2ToF) {
+      stk.e2 <- inla.stack(
+        tag = "est2", data = list(data.frame(y = cbind(de2$value, NA), e = rep(NA, nrow(de2)))),
+        A = list(1, Ae2), effects = list(b0 = rep(1, nrow(de2)), list(k = 1:nv, s1 = 1:nv))
+      )
+    }
+    if (dp1ToF) {
+      stk.p1 <- inla.stack(
+        tag = "pred1", data = list(y = cbind(rep(NA, nrow(dp1)), NA), e = rep(NA, nrow(dp1))),
+        A = list(1, Ap1), effects = list(b0 = rep(1, nrow(dp1)), i = 1:nv)
+      )
+    }
+    if (PS == T) {
+      if (de2ToF) {
+        formula <- y ~ 0 + b0 + b0pp + f(i, model = spde) + f(j, copy = "i", fixed = FALSE) +
+          f(k, copy = "i", fixed = T)
       }
-      if(!de2ToF){formula <- y ~ 0 + b0 + b0pp + f(i, model = spde) + f(j, copy = "i", fixed = FALSE) }
+
+      if (!de2ToF) {
+        formula <- y ~ 0 + b0 + b0pp + f(i, model = spde) + f(j, copy = "i", fixed = FALSE)
+      }
     } else {
-      formula <- y ~ 0 + b0  + f(i, model = spde) + f(k, copy = "i", fixed = FALSE)
+      formula <- y ~ 0 + b0 + f(i, model = spde) + f(k, copy = "i", fixed = FALSE)
     }
   }
 
   stk.full <- do.call(inla.stack, list(stk.e1, stk.e1pp.c, stk.e2, stk.p1)[c(de1ToF, PS, de2ToF, dp1ToF)])
-  res <- inla(formula, family = c("gaussian", "poisson"), data = inla.stack.data(stk.full),
-              E = inla.stack.data(stk.full)$e,
-              control.compute = list(config = TRUE, return.marginals.predictor = TRUE),
-              control.predictor = list(compute = TRUE, link = 1, A = inla.stack.A(stk.full)))
+  res <- inla(formula,
+    family = c("gaussian", "poisson"), data = inla.stack.data(stk.full),
+    E = inla.stack.data(stk.full)$e,
+    control.compute = list(config = TRUE, return.marginals.predictor = TRUE),
+    control.predictor = list(compute = TRUE, link = 1, A = inla.stack.A(stk.full))
+  )
   print(summary(res))
   dp1 <- fnRetrievePredictions(stk.full, res, "pred1", dp1)
-  if(!is.null(q)){  index <- inla.stack.index(stack = stk.full, tag = "pred1")$data
-  ecprob <- sapply(res$marginals.fitted.values[index],
-                   FUN = function(marg){1-inla.pmarginal(q = q, marginal = marg)})
-  dp1$ecprob <- ecprob}
+  if (!is.null(q)) {
+    index <- inla.stack.index(stack = stk.full, tag = "pred1")$data
+    ecprob <- sapply(res$marginals.fitted.values[index],
+      FUN = function(marg) {
+        1 - inla.pmarginal(q = q, marginal = marg)
+      }
+    )
+    dp1$ecprob <- ecprob
+  }
   return(list(dp1, res))
 }
 
