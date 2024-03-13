@@ -1,7 +1,7 @@
 # The preprocessed data can be found in data folder
 # The first three sections are data preprocessing procedure, if you load the data, please run Modeling section directly
 
-source("header.R")
+source("simulation_heter/header.R")
 source('05-paperimage.R')
 source('dataprocess.r')
 library(ncdf4) # package for netcdf manipulation
@@ -34,9 +34,9 @@ ggplot(boundaryregion)+ geom_sf()
 loc.d <- st_coordinates(boundaryregion)[,c(1,2)]
 
 # Fitting INLA model multiprocess------------------------------------------------------
-dearea <- st_read("data/dearea_cov.shp") %>% st_join(boundaryregion,left = F) %>% dplyr::select(1,3)
-depoint <- st_read("data/depoint_cov.shp")%>% st_join(boundaryregion,left = F) %>% dplyr::select(1,2)
-dppoint <- st_read("data/dppoint_cov.shp")%>% st_join(boundaryregion,left = F) %>% dplyr::select(1)
+dearea <- st_read("data/dearea_.shp") %>% st_join(boundaryregion,left = F) %>% dplyr::select(1,3)
+depoint <- st_read("data/depoint_last.shp")%>% st_join(boundaryregion,left = F) %>% dplyr::select(1,2)
+dppoint <- st_read("data/dppoint_last.shp")%>% st_join(boundaryregion,left = F) %>% dplyr::select(1)
 population_sf <- st_read("data/county_population.shp")%>% st_join(boundaryregion,left = F) %>% dplyr::select(1)
 
 # dppoint <- na.omit(dppoint)
@@ -139,7 +139,7 @@ colnames(dearea) <- c('value','geometry')
 # # county_population <- st_read('~/Documents/Project2/Preferential Sampling 2/data/Population-Density By County/County.shp')%>% st_crop(usa, xmin =min(lon), xmax = max(lon), ymin = min(lat), ymax = max(lat))%>%st_transform(crsproj) %>%  st_as_sf() %>% 
 # #   dplyr::select(B01001_cal,NAME)
 # dppoint <- dppoint %>% st_join(population_sf) %>%  dplyr::select(population_density)
-# save(depoint,dearea,dppoint,boundaryregion,covariate,mesh,file = "~/Documents/Project2/Preferential Sampling 2/PSmelding/data/Usa_pm_data.RData")
+save(depoint,dearea,dppoint,boundaryregion,file = "data/US_pm_data.RData")
 
 tif_file_path <- "data/usa_pd_2020_1km_UNadj.tif"
 bd_ws84 <- boundaryregion %>% st_transform(4326)

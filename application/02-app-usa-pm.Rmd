@@ -1,0 +1,75 @@
+---
+title: "01-app-usa-pm"
+output: html_notebook
+---
+require 
+ - data/processed/us_pm_data_pop.Rdata
+target 
+- 
+```{r setup, include = FALSE}
+rm(list = ls())
+knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
+knitr::opts_chunk$set(fig.height = 8, fig.width = 7)
+knitr::opts_chunk$set(comment = "#>")
+options(width = 100)
+options(ggplot2.continuous.colour="viridis")
+options(ggplot2.continuous.fill = "viridis")
+```
+
+```{r}
+library(raster) # package for raster manipulation
+#library(rgdal) # package for geospatial analysis
+library(ggplot2)
+library(sp)
+library(tibbletime)
+library(lubridate)
+library(rnaturalearth)
+library(sf)
+library(ggplot2)
+library(dplyr)
+library(INLA)
+library(rgeos)
+path_proj <- '~/PSmelding'
+path_data <- file.path(path_proj, "data/processed")
+path_src <- file.path(path_proj, "functions")
+load(file.path(path_data,'us_pm_data_pop.RData'))
+source(file.path(path_src,'app_function.R'))
+source(file.path(path_src,'fnCreateMesh.R'))
+source(file.path(path_src,'PSmeldingFunctions.R'))
+source(file.path(path_src,'fnCheckInputsMelding.R'))
+source(file.path(path_src,'fnPredictMelding.R'))
+```
+Build Mesh
+```{r}
+crsproj <- "+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=km +nadgrids=@null +wktext +no_defs"
+dearea <- dearea %>% st_transform(crsproj)
+depoint <- depoint %>% st_transform(crsproj)
+boundaryregion <- boundaryregion %>% st_transform(crsproj)
+loc.d <- st_coordinates(boundaryregion)[,c(1,2)]
+boundaryregion_sp <- as_Spatial(boundaryregion[,1])
+maxedge <- fnMaxEdgeMeshFromBoundary(boundaryregion)
+mesh <- inla.mesh.2d(loc.domain = loc.d,boundary = boundaryregion_sp, 
+                     max.edge = c(maxedge/20, maxedge), cutoff = maxedge/30
+                     )
+plot(mesh) 
+```
+```{r}
+us_state_bd$pop_dens <- log(us_state_bd$pop_dens)
+mesh_cov <- fnCreatemeshcov(mesh,us_state_bd,crsproj)
+mesh_cov <- mesh_cov %>%
+  mutate(pop_dens = ifelse(is.na(pop_dens), 0, pop_dens))
+ggplot(data = boundaryregion) + geom_sf() + geom_sf(data = mesh_cov, aes(col = pop_dens), size = 2)
+# merge mesh node and observation node
+covariate <- data.frame(rbind(mesh_cov[,c(2)],depoint[,c(2)])) %>% st_as_sf()
+```
+
+```{r}
+kappa <- exp(-4)
+rho <- sqrt(8*1)/kappa
+kappa <- exp(-1)
+rho <- sqrt(8*1)/kappa
+PSmeldingPD <- fnPSMeldingCOVTwo(depoint = depoint, dearea = dearea, dppoint = dppoint, dparea = NULL,
+                                 boundaryregion = boundaryregion, mesh = mesh, 
+                                 prior.sigma = c(0.1,0.6), prior.range = c(rho, 0.9), covariate = covariate, PS = T,q= 8)
+summary(PSmeldingPD[[2]])
+```

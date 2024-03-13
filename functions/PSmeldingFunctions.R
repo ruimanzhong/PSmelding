@@ -239,24 +239,24 @@ fnPSMeldingCOVTwo <- function(depoint, dearea = NULL, dppoint = NULL, dparea = N
     if (de1ToF) {
       stk.e1 <- inla.stack(
         tag = "est1", data = list(y = cbind(de1$value, NA), e = rep(0, n)),
-        A = list(1, 1, Ae1), effects = list(b0 = rep(1, nrow(de1)), covariate = de1$population_density, list(i = 1:nv))
+        A = list(1, 1, Ae1), effects = list(b0 = rep(1, nrow(de1)), covariate = de1$pop_dens, list(i = 1:nv))
       )
       stk.e1pp.c <- inla.stack(
         tag = "est1pp", data = list(y = cbind(NA, y.pp), e = e.pp),
-        A = list(1, A.pp.c), effects = list(list(b0pp = 1, covariate_pp = covariate$population_density), list(j = 1:nv))
+        A = list(1, A.pp.c), effects = list(list(b0pp = 1, covariate_pp = covariate$pop_dens), list(j = 1:nv))
       )
     }
     if (de2ToF) {
       stk.e2 <- inla.stack(
         tag = "est2", data = list(data.frame(y = cbind(de2$value, NA), e = rep(NA, nrow(de2)))),
-        A = list(1, 1, Ae2), effects = list(b0 = rep(1, nrow(de2)), covariate = de2$population_density, list(k = 1:nv))
+        A = list(1, 1, Ae2), effects = list(b0 = rep(1, nrow(de2)), covariate = de2$pop_dens, list(k = 1:nv))
       )
     }
 
     if (dp1ToF) {
       stk.p1 <- inla.stack(
         tag = "pred1", data = list(y = cbind(rep(NA, nrow(dp1)), NA), e = rep(NA, nrow(dp1))),
-        A = list(1, 1, Ap1), effects = list(b0 = rep(1, nrow(dp1)), covariate = dp1$population_density, i = 1:nv)
+        A = list(1, 1, Ap1), effects = list(b0 = rep(1, nrow(dp1)), covariate = dp1$pop_dens, i = 1:nv)
       )
     }
     if (PS == T) {
@@ -394,15 +394,15 @@ fnPSMeldingCOVSV <- function(depoint, dearea = NULL, dppoint = NULL , dparea = N
   stk.p2 <- NULL
   if(de1ToF){
     stk.e1 <- inla.stack(tag = "est1", data = list(y = cbind(de1$value, NA), e = rep(0, n)),
-                         A = list(1,1,Ae1 * de1$population_density,Ae1), effects = list(b0 = rep(1, nrow(de1)), covariate = de1$population_density,k = 1:nv, list(i = 1:nv)))
+                         A = list(1,1,Ae1 * de1$pop_dens,Ae1), effects = list(b0 = rep(1, nrow(de1)), covariate = de1$pop_dens,k = 1:nv, list(i = 1:nv)))
     stk.e1pp.c <- inla.stack(tag = "est1pp", data = list(y = cbind(NA, y.pp), e = e.pp),
-                             A = list(1, A.pp.c * covariate$population_density, A.pp.c), effects = list(list(b0pp = 1, covariate_pp = covariate$population_density),l = 1:nv,list(j = 1:nv)))
+                             A = list(1, A.pp.c * covariate$pop_dens, A.pp.c), effects = list(list(b0pp = 1, covariate_pp = covariate$pop_dens),l = 1:nv,list(j = 1:nv)))
   }
   if(de2ToF){stk.e2 <- inla.stack(tag = "est2", data = list(data.frame(y = cbind(de2$value, NA), e = rep(NA, nrow(de2)))),
-                                  A = list(1,1,Ae2 * de2$population_density, Ae2), effects = list(b0 = rep(1, nrow(de2)), covariate = de2$population_density,k = 1:nv,list(i = 1:nv, s2 = 1:nv)))}
+                                  A = list(1,1,Ae2 * de2$pop_dens, Ae2), effects = list(b0 = rep(1, nrow(de2)), covariate = de2$pop_dens,k = 1:nv,list(i = 1:nv, s2 = 1:nv)))}
   
   if(dp1ToF){stk.p1 <- inla.stack(tag = "pred1", data = list(y = cbind(rep(NA, nrow(dp1)), NA), e = rep(NA, nrow(dp1))),
-                                  A = list(1,1,Ap1* dp1$population_density, Ap1), effects = list(b0 = rep(1, nrow(dp1)), covariate = dp1$population_density,k = 1:nv, i = 1:nv))}
+                                  A = list(1,1,Ap1* dp1$pop_dens, Ap1), effects = list(b0 = rep(1, nrow(dp1)), covariate = dp1$pop_dens,k = 1:nv, i = 1:nv))}
   
   stk.full <- do.call(inla.stack, list(stk.e1, stk.e1pp.c, stk.e2, stk.p1)[c(de1ToF, PS, de2ToF, dp1ToF)])
   if(PS == T){

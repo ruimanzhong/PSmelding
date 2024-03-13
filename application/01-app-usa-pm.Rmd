@@ -1,0 +1,78 @@
+---
+title: "01-app-usa-pm"
+output: html_document
+date: "2024-03-12"
+---
+require 
+- data/US_pm_data.Rdata
+- State.shp
+target 
+
+data/processed/us_pm_data_pop.Rdata
+
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
+knitr::opts_chunk$set(fig.height = 8, fig.width = 7)
+knitr::opts_chunk$set(comment = "#>")
+options(width = 100)
+theme_set(theme_minimal())
+options(ggplot2.continuous.colour="viridis")
+options(ggplot2.continuous.fill = "viridis")
+```
+
+## Load packages, read data, and source custom scripts
+
+```{r}
+rm(list = ls())
+library(sf)
+library(ggplot2)
+library(dplyr)
+path_proj <- '~/PSmelding'
+path_data <- file.path(path_proj, "data")
+path_src <- file.path(path_proj, "functions")
+load(file.path(path_data,'US_pm_data.RData'))
+source(file.path(path_src,'app_function.R'))
+ us_state_bd <- st_read(file.path(path_data,'State.shp')) 
+```
+
+```{r}
+lon <- c(-124, -67)
+lat <- c(20, 50)
+us_state_bd <- us_state_bd %>% st_crop(usa, xmin =min(lon), xmax = max(lon), ymin = min(lat), ymax = max(lat)) %>% select(NAME, 16,23)
+colnames(us_state_bd) <- c('Name', 'pop_dens','area','geometry')
+```
+
+```{r}
+crsproj <- "+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=km +nadgrids=@null +wktext +no_defs"
+us_state_bd <- st_transform(us_state_bd, crsproj)
+ggplot() +geom_sf(data = us_state_bd, aes(fill = log(pop_dens)))
+```
+```{r}
+depoint <- depoint %>% st_join(us_state_bd) %>% select(value,pop_dens)
+depoint$pop_dens <- log(depoint$pop_dens )
+dppoint <- dppoint %>% st_join(us_state_bd) %>% select(pop_dens)
+dppoint$pop_dens <- log(dppoint$pop_dens)
+de_new <- dearea
+de_new$group <- 1:nrow(de_new)
+de_new <- de_new %>%
+  st_join(us_state_bd)
+
+de_new$area <- as.numeric(st_area(de_new)) %>% na.omit()
+
+de_new <- de_new%>%
+  group_by(group,value)%>%
+  summarise(area_sum = sum(area),
+            pop_dens = weighted.mean(pop_dens,area/sum(area))) %>% dplyr::select(-1)
+dearea <- de_new %>% select(value,pop_dens)
+dearea$pop_dens <- log(dearea$pop_dens)
+```
+```{r}
+ggplot() +geom_sf(data = dearea, aes(fill = pop_dens))
+ggplot() +geom_sf(data = depoint, aes(color = pop_dens))
+```
+```{r}
+depoint <- na.omit(depoint)
+dppoint <- na.omit(dppoint)
+save(depoint,dearea,dppoint,us_state_bd,boundaryregion, file = file.path(path_data, 'processed/us_pm_data_pop.RData'))
+```
