@@ -1,35 +1,9 @@
----
-title: "01-app-usa-pm"
-output: html_notebook
----
-require 
- - data/processed/us_pm_data_pop.Rdata
-target 
-- 
-```{r setup, include = FALSE}
-rm(list = ls())
-knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
-knitr::opts_chunk$set(fig.height = 8, fig.width = 7)
-knitr::opts_chunk$set(comment = "#>")
-options(width = 100)
-options(ggplot2.continuous.colour="viridis")
-options(ggplot2.continuous.fill = "viridis")
-```
-
 ```{r}
-library(raster) # package for raster manipulation
-#library(rgdal) # package for geospatial analysis
-library(ggplot2)
-library(sp)
-library(tibbletime)
-library(lubridate)
-library(rnaturalearth)
-library(sf)
 library(ggplot2)
 library(dplyr)
 library(INLA)
 library(rgeos)
-path_proj <- '~/PSmelding'
+path_proj <- day2day::git_path()
 path_data <- file.path(path_proj, "data/processed")
 path_src <- file.path(path_proj, "functions")
 load(file.path(path_data,'us_pm_data_pop.RData'))
@@ -38,6 +12,7 @@ source(file.path(path_src,'fnCreateMesh.R'))
 source(file.path(path_src,'PSmeldingFunctions.R'))
 source(file.path(path_src,'fnCheckInputsMelding.R'))
 source(file.path(path_src,'fnPredictMelding.R'))
+source('~/Documents/visualization.R')
 ```
 Build Mesh
 ```{r}
@@ -72,4 +47,59 @@ PSmeldingPD <- fnPSMeldingCOVTwo(depoint = depoint, dearea = dearea, dppoint = d
                                  boundaryregion = boundaryregion, mesh = mesh, 
                                  prior.sigma = c(0.1,0.6), prior.range = c(rho, 0.9), covariate = covariate, PS = T,q= 8)
 summary(PSmeldingPD[[2]])
+```
+
+```{r}
+# devtools::install_github('spatstat/spatstat.core')
+# devtools::install_github('joenomiddlename/PStestR', dependencies=T, build_vignettes=T)
+```
+
+```{r}
+xtable::xtable(PSmeldingPD[[2]]$summary.fixed[,c(1,2,3,5)])
+xtable::xtable(PSmeldingPD[[2]]$summary.hyperpar[,c(1,2,3,5)])
+plot_sp_2(PSmeldingPD[[1]],model = 'PSmelding',range(PSmeldingPD[[1]]$pred_ll,12),boundaryregion)
+```
+
+```{r}
+library(maptools)
+library(tidyr)
+coords <- as.data.frame(sf::st_coordinates(depoint)[,c(1,2)])
+colnames(coords) <- c('x','y')
+test_spat_dat <- PStestR::PSTestInit(type='spatial', discrete = F,     
+                            positions=coords, poly=as(boundaryregion_sp, "SpatialPolygons"),   
+                            n_prediction = 5000)
+names(test_spat_dat)
+```
+```{r}
+ us_state_bd <- st_read(file.path('/home/zhonr0a/Documents/project 2/PSmeld/data','State.shp')) %>% st_transform(crsproj) %>% select(16)
+coord <- test_spat_dat$prediction_grid
+
+coop_sf <- st_as_sf(coord) %>% st_set_crs(crsproj)
+ggplot()+geom_sf(data = coop_sf)
+cova <- st_join(coop_sf,us_state_bd)
+cova$B01001_cal <- log(cova$B01001_cal)
+colnames(cova) <- c('pop_dens', 'geometry')
+cova$pop_dens %>% replace_na(0)
+res <- fnPredictMelding(depoint = depoint, dppoint = cova,covariate = cova)
+index <- inla.stack.index(stack = stk.full, tag = 'pred1')$data
+  cova$pred_mean <- as.vector(Ap1 %*% res[["summary.random"]][["s"]][["mean"]])
+```
+
+```{r}
+ cov <- SpatialPixelsDataFrame(test_spat_dat$prediction_grid,
+                                data=data.frame(cov=log(cova$pop_dens)))
+latent_effect <- SpatialPixelsDataFrame(test_spat_dat$prediction_grid,
+                         data=data.frame(latent_effect=cova$pred_mean))
+plot(latent_effect)
+```
+```{r}
+ covariates_list <- list(cov = cov)
+
+spat_test_3 <-PStestR::PSTestRun(test_spat_dat, formula = ~ 1, 
+                         interaction = NULL, 
+                         latent_effect = latent_effect,
+                         covariates = covariates_list,
+                         residual_tests=F, M=19, no_nn = 10,
+                         parallel = T, ncores=1,
+                         return_plots = T, simultaneous = T)
 ```
