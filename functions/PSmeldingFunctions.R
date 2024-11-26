@@ -1,10 +1,5 @@
 fnPredictMeldingPS <- function(depoint, dearea = NULL, dppoint = NULL , dparea = NULL, boundaryregion,
-                               mesh = NULL, prior.sigma = NULL, prior.range = NULL, loc.d = NULL){
-  
-  
-  # replicate ---------------------------------------------------------------
-  
-  
+                               mesh = NULL, prior.sigma = NULL, prior.range = NULL, loc.d = NULL){  
   # Use 1 for points and 2 for areas
   # datasets estimation
   de1 <- depoint
@@ -31,7 +26,7 @@ fnPredictMeldingPS <- function(depoint, dearea = NULL, dppoint = NULL , dparea =
   indexs <- inla.spde.make.index("s", spde$n.spde)
   
   #------
-  # Dual mesh construction (from inla book)
+  # Dual mesh construction
   #------  
  domainSP <- as_Spatial(boundaryregion)
   dmesh <- book.mesh.dual(mesh)
@@ -49,9 +44,7 @@ fnPredictMeldingPS <- function(depoint, dearea = NULL, dppoint = NULL , dparea =
   nv <- mesh$n
   y.pp <- rep(0:1, c(nv, n))
   e.pp <- c(w, rep(0, n))
-  #--------
-  # *********** The unsure part of the code ************
-  #-------- 
+
   # Projection matrices for points (estimation point and prediction point)
   
   if(de1ToF){Ae1 <- inla.spde.make.A(mesh = mesh, loc = as.matrix(st_coordinates(de1)[ , c(1,2)]))
